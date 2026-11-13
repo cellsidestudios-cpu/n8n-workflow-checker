@@ -16,6 +16,21 @@ Independent project. Not affiliated with or endorsed by n8n.
 
 It checks structure only. It cannot tell you whether your logic is right, and it does not know each node's individual settings.
 
+## Try it in 30 seconds
+
+This repo includes a deliberately broken workflow. Run:
+
+```bash
+node scripts/validate-workflow.mjs examples/broken-example.json
+```
+
+You should see:
+
+```
+FAIL examples/broken-example.json
+  error:   "Get users" connects to "Format", which does not exist.
+```
+
 ## Use it
 
 Needs Node.js 18 or newer. No install, no dependencies.
