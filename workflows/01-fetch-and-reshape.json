@@ -1,0 +1,94 @@
+{
+  "name": "01 Fetch and reshape",
+  "nodes": [
+    {
+      "id": "note-01",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-40, -220],
+      "parameters": {
+        "width": 620,
+        "height": 160,
+        "content": "## Fetch and reshape\nCalls a public API, keeps only the fields you need, drops rows you do not want, and sorts the rest.\nSwap the URL for your own API and add your destination (Sheets, Slack, email) after **Sort by name**."
+      }
+    },
+    {
+      "id": "node-01-1",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "parameters": {}
+    },
+    {
+      "id": "node-01-2",
+      "name": "Get users",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0],
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/users",
+        "options": {}
+      }
+    },
+    {
+      "id": "node-01-3",
+      "name": "Keep useful fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 0],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a-01-1", "name": "name", "value": "={{ $json.name }}", "type": "string" },
+            { "id": "a-01-2", "name": "email", "value": "={{ $json.email.toLowerCase() }}", "type": "string" },
+            { "id": "a-01-3", "name": "city", "value": "={{ $json.address.city }}", "type": "string" },
+            { "id": "a-01-4", "name": "company", "value": "={{ $json.company.name }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "node-01-4",
+      "name": "Only .biz emails",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [660, 0],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "c-01-1",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": ".biz",
+              "operator": { "type": "string", "operation": "endsWith" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "node-01-5",
+      "name": "Sort by name",
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [880, 0],
+      "parameters": {
+        "sortFieldsUi": { "sortField": [{ "fieldName": "name" }] },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Run manually": { "main": [[{ "node": "Get users", "type": "main", "index": 0 }]] },
+    "Get users": { "main": [[{ "node": "Keep useful fields", "type": "main", "index": 0 }]] },
+    "Keep useful fields": { "main": [[{ "node": "Only .biz emails", "type": "main", "index": 0 }]] },
+    "Only .biz emails": { "main": [[{ "node": "Sort by name", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

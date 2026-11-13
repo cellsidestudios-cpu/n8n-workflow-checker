@@ -1,0 +1,92 @@
+{
+  "name": "04 Clean and dedupe",
+  "nodes": [
+    {
+      "id": "note-04",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-40, -240],
+      "parameters": {
+        "width": 620,
+        "height": 180,
+        "content": "## Clean and dedupe\nTakes a messy contact list, tidies names and emails, drops rows without a valid email, and removes duplicates.\nReplace **Sample contacts** with your real source (a spreadsheet, a CSV file, a CRM export)."
+      }
+    },
+    {
+      "id": "node-04-1",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "parameters": {}
+    },
+    {
+      "id": "node-04-2",
+      "name": "Sample contacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "parameters": {
+        "jsCode": "// Stand-in data so the workflow runs without any account. Replace this node with your source.\nreturn [\n  { name: '  Ana Torres ', email: 'Ana.Torres@Example.com ' },\n  { name: 'ana torres', email: 'ana.torres@example.com' },\n  { name: 'Ben Okafor', email: 'ben@example.org' },\n  { name: 'No Email', email: '' },\n  { name: 'Bad Email', email: 'not-an-email' },\n  { name: 'Chloe Martin', email: ' CHLOE@example.net' },\n].map((json) => ({ json }));"
+      }
+    },
+    {
+      "id": "node-04-3",
+      "name": "Tidy fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 0],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a-04-1", "name": "name", "value": "={{ $json.name.trim() }}", "type": "string" },
+            { "id": "a-04-2", "name": "email", "value": "={{ $json.email.trim().toLowerCase() }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "node-04-4",
+      "name": "Valid email only",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [660, 0],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "c-04-1",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+              "operator": { "type": "string", "operation": "regex" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "node-04-5",
+      "name": "One row per email",
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 1.1,
+      "position": [880, 0],
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "email",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Run manually": { "main": [[{ "node": "Sample contacts", "type": "main", "index": 0 }]] },
+    "Sample contacts": { "main": [[{ "node": "Tidy fields", "type": "main", "index": 0 }]] },
+    "Tidy fields": { "main": [[{ "node": "Valid email only", "type": "main", "index": 0 }]] },
+    "Valid email only": { "main": [[{ "node": "One row per email", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
